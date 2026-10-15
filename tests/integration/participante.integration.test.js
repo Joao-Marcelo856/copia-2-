@@ -29,6 +29,25 @@ describe("ParticipanteService.criar (integração)", () => {
     expect(doBanco.email).toBe("ana@senai.br");
   });
 
+  it("não grava participante com e-mail inválido", async () => {
+
+    // Arrange: um participante com e-mail SEM @
+
+    const dados = { nome: "Bruno", email: "brunosenai.br" };
+
+    // Act + Assert: a gravação precisa ser recusada
+
+    await expect(ParticipanteService.criar(dados)).rejects.toThrow();
+
+    // Assert no banco: quantos participantes devem existir agora?
+
+    const total = await Participante.count();
+
+    expect(total).toBe(0);
+
+  });
+
+
   it("não grava dois participantes com o mesmo e-mail", async () => {
     // Arrange: já existe uma Ana no banco
     await ParticipanteService.criar({ nome: "Ana", email: "ana@senai.br" });
@@ -42,4 +61,25 @@ describe("ParticipanteService.criar (integração)", () => {
     const total = await Participante.count();
     expect(total).toBe(1);
   });
+
+  describe("ParticipanteService.atualizar (integração)", () => {
+
+    it("grava o nome novo no banco", async () => {
+
+      // Arrange: criem um participante "Ana", e-mail "ana@senai.br"
+
+        const criado = await ParticipanteService.criar({ nome: "Ana", email: "ana@senai.br" });//(usem ParticipanteService.criar, como nos outros testes)
+
+      // Act: atualizem o nome para "Ana Maria"
+
+        await ParticipanteService.atualizar(criado.id, { nome: "Ana Maria" });//ParticipanteService.atualizar(id, { nome: "Ana Maria" })  ← não esqueçam o await
+
+      // Assert: busquem o participante no banco e confiram se o nome é "Ana Maria"
+        const doBanco = await Participante.findByPk(criado.id);
+        expect(doBanco).not.toBeNull();
+        expect(doBanco.nome).toBe("Ana Maria");
+    });
+
+  });
+
 });
